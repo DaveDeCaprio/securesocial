@@ -42,7 +42,8 @@ abstract class OAuth2Provider(application: Application) extends IdentityProvider
       clientSecret <- loadProperty(OAuth2Settings.ClientSecret)
     } yield {
       val scope = application.configuration.getString(propertyKey + OAuth2Settings.Scope)
-      OAuth2Settings(authorizationUrl, accessToken, clientId, clientSecret, scope)
+      val additionalOptions = application.configuration.getString(propertyKey + OAuth2Settings.AdditionalOptions)
+      OAuth2Settings(authorizationUrl, accessToken, clientId, clientSecret, scope, additionalOptions)
     }
     if ( !result.isDefined ) {
       throwMissingPropertiesException()
@@ -128,7 +129,7 @@ abstract class OAuth2Provider(application: Application) extends IdentityProvider
           (OAuth2Constants.State, state))
         settings.scope.foreach( s => { params = (OAuth2Constants.Scope, s) :: params })
         val url = settings.authorizationUrl +
-          params.map( p => p._1 + "=" + URLEncoder.encode(p._2, "UTF-8")).mkString("?", "&", "")
+          (settings.additionalOptions.getOrElse(Nil) :: params.map( p => p._1 + "=" + URLEncoder.encode(p._2, "UTF-8"))).mkString("?", "&", "")
         if ( Logger.isDebugEnabled ) {
           Logger.debug("[securesocial] authorizationUrl = %s".format(settings.authorizationUrl))
           Logger.debug("[securesocial] redirecting to: [%s]".format(url))
@@ -139,7 +140,7 @@ abstract class OAuth2Provider(application: Application) extends IdentityProvider
 }
 
 case class OAuth2Settings(authorizationUrl: String, accessTokenUrl: String, clientId: String,
-                          clientSecret: String, scope: Option[String]
+                          clientSecret: String, scope: Option[String], additionalOptions: Option[String]
                            )
 
 object OAuth2Settings {
@@ -148,6 +149,7 @@ object OAuth2Settings {
   val ClientId = "clientId"
   val ClientSecret = "clientSecret"
   val Scope = "scope"
+  val AdditionalOptions = "additionalOptions"
 }
 
 object OAuth2Constants {
