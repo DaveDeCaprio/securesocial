@@ -15,6 +15,7 @@ object ApplicationBuild extends Build {
 
 	val main = play.Project(appName, appVersion, appDependencies).settings().settings(
 		publishMavenStyle := false,
+		scalaVersion := "2.10.2",
 		resolvers ++= Seq(
 			"jBCrypt Repository" at "http://repo1.maven.org/maven2/org/",
 			"Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"),
